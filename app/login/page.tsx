@@ -88,3 +88,5 @@ return (
     </div>
 );
 }
+
+export default LoginPage
