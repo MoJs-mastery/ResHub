@@ -1,8 +1,20 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { timingSafeEqual } from "node:crypto";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
+
+function matchesSecret(candidate: string, expected: string) {
+  const candidateBuffer = Buffer.from(candidate);
+  const expectedBuffer = Buffer.from(expected);
+
+  return (
+    candidateBuffer.length === expectedBuffer.length &&
+    timingSafeEqual(candidateBuffer, expectedBuffer)
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -24,6 +36,23 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
+        }
+
+        const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+        const adminPassword = process.env.ADMIN_PASSWORD;
+
+        if (
+          adminEmail &&
+          adminPassword &&
+          credentials.email.trim().toLowerCase() === adminEmail &&
+          matchesSecret(credentials.password, adminPassword)
+        ) {
+          return {
+            id: `env-admin:${adminEmail}`,
+            name: "Administrator",
+            email: adminEmail,
+            role: "admin",
+          };
         }
 
         await connectDB();

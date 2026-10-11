@@ -15,7 +15,7 @@ interface MenuItem {
   available: boolean;
 }
 
-export const EditMenuPage=()=> {
+export default function EditMenuPage() {
   const params = useParams();
   const router = useRouter();
 

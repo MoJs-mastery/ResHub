@@ -25,10 +25,11 @@ const UserSchema =new  Schema<IUser>({
     },
 
     role:{
+        type: String,
         enum:["user","admin"],
         default:"user"
     }
-},{timestamps:true})
+},{timestamps:true});
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 export default User

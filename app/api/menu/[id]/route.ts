@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import mongoose from "mongoose";
 
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { connectDB } from "@/lib/mongodb";
 import MenuItem from "@/models/MenuItem";
 interface Params{
@@ -43,13 +42,9 @@ request: Request,
 { params }: Params
 ) {
 try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-    return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-    );
+    const authorizationError = await requireAdmin();
+    if (authorizationError) {
+    return authorizationError;
     }
 
     const { id } = await params;
@@ -97,13 +92,9 @@ request: Request,
 { params }: Params
 ) {
 try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-    return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-    );
+    const authorizationError = await requireAdmin();
+    if (authorizationError) {
+    return authorizationError;
     }
 
     const { id } = await params;

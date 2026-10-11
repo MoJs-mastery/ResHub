@@ -12,7 +12,7 @@ interface MenuItem {
   available: boolean;
 }
 
-export const  DashboardMenuPage=()=> {
+export default function DashboardMenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 

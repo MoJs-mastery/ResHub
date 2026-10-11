@@ -29,12 +29,13 @@ export async function POST(request: Request){
     email:normalizedEmail
     })
     if(existingUser){
-        NextResponse.json({
+        return NextResponse.json({
             message:"User already exists"
         },{
             status:409
         })
-
+    }
+    
     const hashedPassword = await bcrypt.hash(password,10)
     const user = await User.create({
         name:name.trim(),
@@ -52,7 +53,6 @@ export async function POST(request: Request){
     },{
         status:201
     })  
-    }
     } catch (error) {
     console.error(error);
 

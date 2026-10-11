@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import MenuForm from "@/components/MenuForm";
 
-export const  CreateMenuPage=()=> {
+export default function CreateMenuPage() {
   const router = useRouter();
 
   return (

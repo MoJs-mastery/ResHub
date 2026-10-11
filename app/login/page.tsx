@@ -1,7 +1,7 @@
 "use client";
 
 import { SubmitEvent, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 const LoginPage =()=>{
@@ -23,6 +23,13 @@ setLoading(false);
 if (result?.error) {
 setError("Invalid email or password");
     return;
+    }
+
+    const session = await getSession();
+    if (session?.user.role !== "admin") {
+        await signOut({ redirect: false });
+        setError("This account does not have administrator access.");
+        return;
     }
 
     router.push("/dashboard");
@@ -76,7 +83,7 @@ return (
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link
             href="/register"
             className="font-semibold text-orange-600"

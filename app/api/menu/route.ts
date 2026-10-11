@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { connectDB } from "@/lib/mongodb";
 import MenuItem from "@/models/MenuItem";
 
@@ -24,12 +23,9 @@ export async function GET() {
 
 export async function POST(request: Request){
 try {
-    const session = await getServerSession(authOptions)
-    if(!session){
-        return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-        )
+    const authorizationError = await requireAdmin();
+    if (authorizationError) {
+        return authorizationError;
     }
     await connectDB();
     const body = await request.json();
