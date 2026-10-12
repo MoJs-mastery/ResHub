@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
-const MONGODB_URI = process.env.MONGODB_URI
-if(!MONGODB_URI){
-    throw new Error("Please define MONGODB_URI in .env.local")
+import { ensureAdminInDB } from "@/lib/seed-admin";
+
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  throw new Error("Please define MONGODB_URI in .env");
 }
 
 interface MongooseCache {
@@ -12,11 +14,14 @@ interface MongooseCache {
 declare global {
   var mongooseCache: MongooseCache | undefined;
 }
+
 const cached: MongooseCache = global.mongooseCache || {
   conn: null,
   promise: null,
 };
-global.mongooseCache= cached;
+
+global.mongooseCache = cached;
+
 export async function connectDB() {
   if (cached.conn) {
     return cached.conn;
@@ -27,6 +32,9 @@ export async function connectDB() {
   }
 
   cached.conn = await cached.promise;
+
+  // Ensure admin user from .env exists in MongoDB database
+  await ensureAdminInDB();
 
   return cached.conn;
 }

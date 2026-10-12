@@ -4,6 +4,7 @@ name:string,
 email:string,
 password:string,
 role:"user" | "admin";
+favorites:string[];
 }
 
 const UserSchema =new  Schema<IUser>({
@@ -28,8 +29,23 @@ const UserSchema =new  Schema<IUser>({
         type: String,
         enum:["user","admin"],
         default:"user"
-    }
+    },
+    favorites:{
+        type:[String],
+        default:[]
+    },
 },{timestamps:true});
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
-export default User
+const User: Model<IUser> =
+  mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+
+if (!User.schema.path("favorites")) {
+  User.schema.add({
+    favorites: {
+      type: [String],
+      default: [],
+    },
+  });
+}
+
+export default User;

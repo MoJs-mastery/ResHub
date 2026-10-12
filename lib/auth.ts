@@ -38,39 +38,61 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
+        await connectDB();
+
+        const normalizedEmail = credentials.email.trim().toLowerCase();
         const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
         const adminPassword = process.env.ADMIN_PASSWORD;
 
+        // If credentials match .env admin, ensure admin is saved in MongoDB and return real DB document
         if (
           adminEmail &&
           adminPassword &&
-          credentials.email.trim().toLowerCase() === adminEmail &&
+          normalizedEmail === adminEmail &&
           matchesSecret(credentials.password, adminPassword)
         ) {
+          let adminUser = await User.findOne({ email: adminEmail });
+
+          if (!adminUser) {
+            const hashedPassword = await bcrypt.hash(adminPassword, 10);
+            adminUser = await User.create({
+              name: "Administrator",
+              email: adminEmail,
+              password: hashedPassword,
+              role: "admin",
+            });
+            console.log(`[MongoDB] Created admin user in database: ${adminEmail}`);
+          } else if (adminUser.role !== "admin") {
+            adminUser.role = "admin";
+            await adminUser.save();
+          }
+
           return {
-            id: `env-admin:${adminEmail}`,
-            name: "Administrator",
-            email: adminEmail,
-            role: "admin",
+            id: adminUser._id.toString(),
+            name: adminUser.name,
+            email: adminUser.email,
+            role: adminUser.role,
           };
         }
 
-        await connectDB();
-
+        // Standard user login via MongoDB
         const user = await User.findOne({
-          email: credentials.email.toLowerCase(),
+          email: normalizedEmail,
         });
 
         if (!user) {
           throw new Error("Invalid email or password");
         }
+
         const passwordCorrect = await bcrypt.compare(
           credentials.password,
           user.password
         );
+
         if (!passwordCorrect) {
           throw new Error("Invalid email or password");
         }
+
         return {
           id: user._id.toString(),
           name: user.name,
